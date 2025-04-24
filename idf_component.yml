@@ -1,0 +1,3 @@
+version: "0.1.0"
+description: "A platform agnostic driver for the BQ25672 Battery Charger IC"
+dependencies: []
