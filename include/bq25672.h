@@ -20,400 +20,303 @@
 #define BQ25672_I2C_ADDR 0x6B ///< Default I2C address of the BQ25672
 
 /**
- * @brief Register map for BQ25672
+ * @brief Initialize the BQ25672 device.
+ *
+ * @param dev Pointer to device instance structure.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-#define BQ25672_REG_MINIMAL_SYSTEM_VOLTAGE     0x00
-#define BQ25672_REG_CHARGE_VOLTAGE_LIMIT       0x01
-#define BQ25672_REG_CHARGE_CURRENT_LIMIT       0x03
-#define BQ25672_REG_INPUT_VOLTAGE_LIMIT        0x05
-#define BQ25672_REG_INPUT_CURRENT_LIMIT        0x06
-#define BQ25672_REG_PRECHARGE_CONTROL          0x08
-#define BQ25672_REG_TERMINATION_CONTROL        0x09
-#define BQ25672_REG_RECHARGE_CONTROL           0x0A
-#define BQ25672_REG_VOTG_REGULATION            0x0B
-#define BQ25672_REG_IOTG_REGULATION            0x0D
-#define BQ25672_REG_TIMER_CONTROL              0x0E
-#define BQ25672_REG_CHARGER_CONTROL_0          0x0F
-#define BQ25672_REG_CHARGER_CONTROL_1          0x10
-#define BQ25672_REG_CHARGER_CONTROL_2          0x11
-#define BQ25672_REG_CHARGER_CONTROL_3          0x12
-#define BQ25672_REG_CHARGER_CONTROL_4          0x13
-#define BQ25672_REG_CHARGER_CONTROL_5          0x14
-#define BQ25672_REG_MPPT_CONTROL               0x15
-#define BQ25672_REG_TEMPERATURE_CONTROL        0x16
-#define BQ25672_REG_NTC_CONTROL_0              0x17
-#define BQ25672_REG_NTC_CONTROL_1              0x18
-#define BQ25672_REG_ICO_CURRENT_LIMIT          0x19
-#define BQ25672_REG_CHARGER_STATUS_0           0x1B
-#define BQ25672_REG_CHARGER_STATUS_1           0x1C
-#define BQ25672_REG_CHARGER_STATUS_2           0x1D
-#define BQ25672_REG_CHARGER_STATUS_3           0x1E
-#define BQ25672_REG_CHARGER_STATUS_4           0x1F
-#define BQ25672_REG_FAULT_STATUS_0             0x20
-#define BQ25672_REG_FAULT_STATUS_1             0x21
-#define BQ25672_REG_CHARGER_FLAG_0             0x22
-#define BQ25672_REG_CHARGER_FLAG_1             0x23
-#define BQ25672_REG_CHARGER_FLAG_2             0x24
-#define BQ25672_REG_CHARGER_FLAG_3             0x25
-#define BQ25672_REG_FAULT_FLAG_0               0x26
-#define BQ25672_REG_FAULT_FLAG_1               0x27
-#define BQ25672_REG_CHARGER_MASK_0             0x28
-#define BQ25672_REG_CHARGER_MASK_1             0x29
-#define BQ25672_REG_CHARGER_MASK_2             0x2A
-#define BQ25672_REG_CHARGER_MASK_3             0x2B
-#define BQ25672_REG_FAULT_MASK_0               0x2C
-#define BQ25672_REG_FAULT_MASK_1               0x2D
-#define BQ25672_REG_ADC_CONTROL                0x2E
-#define BQ25672_REG_ADC_FUNCTION_DISABLE_0     0x2F
-#define BQ25672_REG_ADC_FUNCTION_DISABLE_1     0x30
-#define BQ25672_REG_IBUS_ADC                   0x31
-#define BQ25672_REG_IBAT_ADC                   0x33
-#define BQ25672_REG_VBUS_ADC                   0x35
-#define BQ25672_REG_VAC1_ADC                   0x37
-#define BQ25672_REG_VAC2_ADC                   0x39
-#define BQ25672_REG_VBAT_ADC                   0x3B
-#define BQ25672_REG_VSYS_ADC                   0x3D
-#define BQ25672_REG_TS_ADC                     0x3F
-#define BQ25672_REG_TDIE_ADC                   0x41
-#define BQ25672_REG_DP_ADC                     0x43
-#define BQ25672_REG_DM_ADC                     0x45
-#define BQ25672_REG_DPDM_DRIVER                0x47
-#define BQ25672_REG_PART_INFORMATION           0x48
+bq25672_status_t bq25672_init(bq25672_t* const dev, const bq25672_hal_t* const hal);
 
 /**
- * @brief User-implemented I2C write function type
- * @param device_addr I2C address
- * @param reg_addr Register address
- * @param data Pointer to data buffer
- * @param len Number of bytes to write
- * @return true on success, false on failure
+ * @brief Reset the BQ25672 registers to default values.
+ *
+ * @param dev Pointer to device instance structure.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-typedef bool (*bq25672_i2c_write_fn)(const uint8_t device_addr, const uint8_t reg_addr, const void* const data, const uint8_t len);
+bq25672_status_t bq25672_reset_device(const bq25672_t * const dev);
 
 /**
- * @brief User-implemented I2C read function type
- * @param device_addr I2C address
- * @param reg_addr Register address
- * @param data Pointer to data buffer to fill
- * @param len Number of bytes to read
- * @return true on success, false on failure
+ * @brief Configure the BQ25672 with a full configuration set.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to constant configuration settings.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-typedef bool (*bq25672_i2c_read_fn)(const uint8_t device_addr, const uint8_t reg_addr, void* const data, const uint8_t len);
+bq25672_status_t bq25672_configure(bq25672_t* const dev, const bq25672_config_t * const config);
 
 /**
- * @brief General status codes returned by driver functions
+ * @brief Configure charging profile parameters.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to charging configuration settings.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-typedef enum {
-    BQ25672_OK = 0,              ///< Operation successful
-    BQ25672_ERROR = -1,          ///< General error
-    BQ25672_INVALID_PARAM = -2,  ///< Invalid parameter
-    BQ25672_COMM_FAIL = -3       ///< Communication failure
-} bq25672_status_t;
+bq25672_status_t bq25672_configure_charging(bq25672_t* const dev, const bq25672_charge_config_t * const config);
 
 /**
- * @brief Battery cell count options
+ * @brief Configure system-level behavior.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to system configuration settings.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-typedef enum {
-    BQ25672_CELL_1S = 0, ///< Single cell (1S)
-    BQ25672_CELL_2S,     ///< Two cells (2S)
-    BQ25672_CELL_3S,     ///< Three cells (3S)
-    BQ25672_CELL_4S      ///< Four cells (4S)
-} bq25672_battery_cells_t;
+bq25672_status_t bq25672_configure_system(bq25672_t* const dev, const bq25672_system_config_t * const config);
 
 /**
- * @brief 
- * 
+ * @brief Configure the watchdog timer.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to watchdog timer configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-typedef enum {
-    BQ25672_PRECHARGE_VOLTAGE_15_VREG   = 0x0,  ///< 15% of VREG is the precharge cuttoff
-    BQ25672_PRECHARGE_VOLTAGE_62_2_VREG = 0x1,  ///< 62.2% of VREG is the precharge cutoff
-    BQ25672_PRECHARGE_VOLTAGE_66_7_VREG = 0x2,  ///< 66.7% of VREG is the precharge cutoff
-    BQ25672_PRECHARGE_VOLTAGE_71_4_VREG = 0x3,  ///< 71.4% of VREG is the precharge cutoff
-} bq25672_precharge_voltage_t;
-
-typedef enum {
-    BQ25672_RECHARGE_DEGLITCH_64MS  = 0x0,
-    BQ25672_RECHARGE_DEGLITCH_256MS = 0x1,
-    BQ25672_RECHARGE_DEGLITCH_1024MS= 0x2,
-    BQ25672_RECHARGE_DEGLITCH_2048MS= 0x3
-} bq25672_recharge_deglitch_t;
-
-typedef enum {
-    BQ25672_OVP_VOLTAGE_26V = 0x0,
-    BQ25672_OVP_VOLTAGE_22V = 0x1,
-    BQ25672_OVP_VOLTAGE_12V = 0x2,
-    BQ25672_OVP_VOLTAGE_7V  = 0x3
-} bq25672_ovp_voltage_t;
-
-typedef enum {
-    BQ25672_WATCHDOG_TIME_500MS     = 0x0, 
-    BQ25672_WATCHDOG_TIME_1S        = 0x1,
-    BQ25672_WATCHDOG_TIME_2S        = 0x2, 
-    BQ25672_WATCHDOG_TIME_10S       = 0x3,
-    BQ25672_WATCHDOG_TIME_20S       = 0x4,
-    BQ25672_WATCHDOG_TIME_40S       = 0x5,
-    BQ25672_WATCHDOG_TIME_80S       = 0x6,
-    BQ25672_WATCHDOG_TIME_160S      = 0x7
-} bq25672_watchdog_time_t;
+bq25672_status_t bq25672_configure_watchdog(bq25672_t* const dev, const bq25672_watchdog_config_t * const config);
 
 /**
- * @brief Interrupt flag result structure
+ * @brief Configure OTG/USB boost operation.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to USB configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-typedef struct {
-    // Charger Flags
-    bool input_voltage_limit;
-    bool input_current_limit;
-    bool precharge_timer_expired;
-    bool charge_termination;
-    bool jeita_region;
-    bool safety_timer_fault;
-
-    // Fault Flags
-    bool input_overvoltage;
-    bool battery_overvoltage;
-    bool battery_undervoltage;
-    bool thermal_shutdown;
-    bool ts_fault;
-    bool watchdog_expired;
-    bool battery_not_connected;
-} bq25672_irq_flags_t;
+bq25672_status_t bq25672_configure_usb(bq25672_t* const dev, const bq25672_usb_config_t * const config);
 
 /**
- * @brief Charger context containing function pointers for I2C access
+ * @brief Configure the safety timers.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to timer configuration settings.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-typedef struct {
-    bq25672_i2c_write_fn i2c_write; ///< Function to perform I2C write
-    bq25672_i2c_read_fn i2c_read;   ///< Function to perform I2C read
-} bq25672_dev_t;
+bq25672_status_t bq25672_configure_timers(bq25672_t* const dev, const bq25672_timer_config_t * const config);
 
 /**
- * @brief Configuration structure for initializing BQ25672 with default values
+ * @brief Configure Maximum Power Point Tracking (MPPT).
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to MPPT configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-typedef struct {
-    uint16_t charge_voltage_max_mv;     ///< Charge voltage in millivolts
-    uint16_t charge_current_max_ma;     ///< Charge current in milliamps
-    uint16_t input_voltage_max_mv;      ///< Input voltage limit in millivolts
-    uint16_t input_voltage_min_mv;      ///< Minium voltage limit in millivolts
-    uint16_t input_current_max_ma;      ///< Input current limit in milliamps
-} bq25672_charge_config_t;
-
-typedef struct bq25672
-{
-    bq25672_precharge_voltage_t precharge_voltage;
-    uint8_t termination_current;
-    bool discharge_current_enable;
-    bool force_discharge_current;
-    bool optimize_input_current;
-    bool force_optimize_input_current;
-    bool enable_floating_mode;
-    bool enable_termination;
-} bq25672_adv_config_t;
-
-typedef struct {
-    uint8_t cell_count: 2; 
-    bq25672_recharge_deglitch_t deglitch;
-    uint16_t threshold_offset;
-} bq25672_recharge_config_t;
-
-typedef struct {
-    uint16_t voltage_mv;        ///< 
-    uint16_t current_max_ma;    ///<
-    bool precharge_timer_short; ///<
-
-} bq25672_otg_config_t;
-
-typedef struct {
-    bool top_off_timer_enable;
-    bool trickle_timer_enable;
-    bool precharge_timer_enable;
-    bool fast_charge_timer_enable;
-    bool timer_slowdown_enable;
-} bq25672_timer_config_t;
-
-typedef struct {
-    bool watchdog_disable_charging;
-} bq25672_watchdog_config_t;
-
-
-
-// Initialization
-/**
- * @brief Initialize the BQ25672 device
- * @param dev Pointer to the device configuration structure
- * @return BQ25672_OK on success, error code otherwise
- */
-bq25672_status_t bq25672_init(const bq25672_dev_t *dev);
-
-
+bq25672_status_t bq25672_configure_mppt(bq25672_t* const dev, const bq25672_mppt_config_t * const config);
 
 /**
- * @brief 
- * 
- * @param dev 
- * @return bq25672_status_t 
+ * @brief Configure NTC thermal monitoring thresholds.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to NTC configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_hw_enable(const bq25672_dev_t* const dev);
+bq25672_status_t bq25672_configure_ntc(bq25672_t* const dev, const bq25672_ntc_config_t * const config);
 
 /**
- * @brief 
- * 
- * @param dev 
- * @return bq25672_status_t 
+ * @brief Configure JEITA temperature-based behavior.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param config Pointer to JEITA configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_hw_disable(const bq25672_dev_t* const dev);
+bq25672_status_t bq25672_configure_jeita(bq25672_t* const dev, const bq25672_jeita_config_t * const config);
 
 /**
- * @brief 
- * 
- * @param dev 
- * @return bq25672_status_t 
+ * @brief Read the current charging configuration from the device.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved charging configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_sw_enable(const bq25672_dev_t* const dev);
+bq25672_status_t bq25672_read_charging_config(const bq25672_t* const dev, bq25672_charge_config_t * const config);
 
 /**
- * @brief 
- * 
- * @param dev 
- * @return bq25672_status_t 
+ * @brief Read the current system configuration from the device.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved system configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_sw_disable(const bq25672_dev_t* const dev);
+bq25672_status_t bq25672_read_system_config(const bq25672_t* const dev, bq25672_system_config_t * const config);
 
 /**
- * @brief 
- * 
- * @param dev 
- * @param config 
- * @return bq25672_status_t 
+ * @brief Read the current USB/OTG configuration from the device.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved USB configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_configure(const bq25672_dev_t* const dev, const bq25672_config_t* const config);
+bq25672_status_t bq25672_read_usb_config(const bq25672_t * const dev, bq25672_usb_config_t * const config);
 
 /**
- * @brief Set the charge voltage limit
- * @param dev Pointer to the device configuration structure
- * @param voltage_mv Charge voltage in millivolts (range: 3000 to 18800, step: 10)
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Read the current watchdog timer configuration from the device.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved watchdog timer configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_set_charge_voltage(const bq25672_dev_t *dev, const uint16_t voltage_mv);
+bq25672_status_t bq25672_read_watchdog_config(const bq25672_t* const dev, bq25672_watchdog_config_t * const config);
 
 /**
- * @brief Set the charge current limit
- * @param dev Pointer to the device configuration structure
- * @param current_ma Charge current in milliamps (range: 50 to 3000, step: 10)
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Read the current timer configuration from the device.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved timer configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_set_charge_current(const bq25672_dev_t *dev, const uint16_t current_ma);
+bq25672_status_t bq25672_read_timer_config(const bq25672_t* const dev, bq25672_timer_config_t * const config);
 
 /**
- * @brief Enable or disable the charger
- * @param dev Pointer to the device configuration structure
- * @param enable Set to true to enable charging, false to disable
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Read the current MPPT configuration from the device.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved MPPT configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_enable_charging(const bq25672_dev_t *dev, const bool enable);
+bq25672_status_t bq25672_read_mppt_config(const bq25672_t* const dev, bq25672_mppt_config_t * const config);
 
 /**
- * @brief Read the charger status register
- * @param dev Pointer to the device configuration structure
- * @param status Pointer to a variable to store the status
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Read the current NTC configuration from the device.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved NTC configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_read_status(const bq25672_dev_t *dev, uint8_t *status);
+bq25672_status_t bq25672_read_ntc_config(const bq25672_t* const dev, bq25672_ntc_config_t * const config);
 
 /**
- * @brief Read ADC value from a specified register (e.g. VBAT, VBUS, etc.)
- * @param dev Pointer to device structure
- * @param reg_lsb Register address of ADC LSB byte (must be even address)
- * @param value Pointer to store the 10-bit ADC result
- * @return BQ25672_OK on success, error otherwise
+ * @brief Read the current JEITA configuration from the device.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved JEITA configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_read_adc(const bq25672_dev_t *dev, uint8_t reg_lsb, uint16_t *value);
+bq25672_status_t bq25672_read_jeita_config(const bq25672_t* const dev, bq25672_jeita_config_t * const config);
 
 /**
- * @brief Read fault status registers
- * @param dev Pointer to device
- * @param fault0 Pointer to store Fault Status 0
- * @param fault1 Pointer to store Fault Status 1
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Read all configuration settings from the device into a full config structure.
+ *
+ * @param dev Pointer to device instance.
+ * @param config Pointer to store the retrieved full device configuration.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_read_fault_status(const bq25672_dev_t *dev, uint8_t *fault0, uint8_t *fault1);
+bq25672_status_t bq25672_read_config(const bq25672_t* const dev, bq25672_config_t * const config);
 
 /**
- * @brief Clear latched fault and charger flags by reading them
- * @param dev Pointer to device
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Set the charge voltage limit.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param voltage_mv Charge voltage in millivolts.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_clear_flags(const bq25672_dev_t *dev);
+bq25672_status_t bq25672_set_charge_voltage(const bq25672_t * const dev, const uint16_t voltage_mv);
 
 /**
- * @brief Set the watchdog timer
- * @param dev Pointer to the device structure
- * @param timeout_minutes Timeout value in minutes (0 disables watchdog)
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Set the charge current limit.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param current_ma Charge current in milliamps.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_set_watchdog_timer(const bq25672_dev_t *dev, uint8_t timeout_minutes);
+bq25672_status_t bq25672_set_charge_current(const bq25672_t * const dev, const uint16_t current_ma);
 
 /**
- * @brief Set MPPT regulation voltage
- * @param dev Pointer to the device structure
- * @param mppt_voltage_mv Voltage in millivolts (must match supported step/range)
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Enable battery charging.
+ *
+ * @param dev Pointer to device instance structure.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_set_mppt_voltage(const bq25672_dev_t *dev, uint16_t mppt_voltage_mv);
+bq25672_status_t bq25672_enable_charging(const bq25672_t * const dev);
 
 /**
- * @brief Configure DPDM line driver enable
- * @param dev Pointer to the device structure
- * @param enable Whether to enable DPDM driver
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Disable battery charging.
+ *
+ * @param dev Pointer to device instance structure.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_set_dpdm_driver_enable(const bq25672_dev_t *dev, bool enable);
+bq25672_status_t bq25672_disable_charging(const bq25672_t * const dev);
 
 /**
- * @brief Set safety timer duration
- * @param dev Pointer to device
- * @param timeout_hours Timeout value in hours (0 disables)
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Enable OTG (boost) operation.
+ *
+ * @param dev Pointer to device instance structure.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_set_safety_timer(const bq25672_dev_t *dev, uint8_t timeout_hours);
+bq25672_status_t bq25672_enable_otg(const bq25672_t * const dev);
 
 /**
- * @brief Configure NTC threshold and behavior
- * @param dev Pointer to the device structure
- * @param cold_threshold_bits Raw register bits for cold threshold
- * @param hot_threshold_bits Raw register bits for hot threshold
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Disable OTG (boost) operation.
+ *
+ * @param dev Pointer to device instance structure.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_set_ntc_thresholds(const bq25672_dev_t *dev, uint8_t cold_threshold_bits, uint8_t hot_threshold_bits);
+bq25672_status_t bq25672_disable_otg(const bq25672_t * const dev);
 
 /**
- * @brief Mask or unmask interrupt sources
- * @param dev Pointer to the device structure
- * @param reg_offset Mask register offset (0x28 to 0x2D)
- * @param mask_bits Bits to set in the mask
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Read fault status registers.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param fault0 Pointer to store Fault Status 0 value.
+ * @param fault1 Pointer to store Fault Status 1 value.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_set_interrupt_mask(const bq25672_dev_t *dev, uint8_t reg_offset, uint8_t mask_bits);
+bq25672_status_t bq25672_read_fault_status(const bq25672_t * const dev, uint8_t * const fault0, uint8_t * const fault1);
 
 /**
- * @brief Read a single register value
- * @param dev Pointer to the device configuration structure
- * @param reg Register address
- * @param value Pointer to store the register value
- * @return BQ25672_OK on success, error code otherwise
+ * @brief Clear latched charger and fault flags.
+ *
+ * @param dev Pointer to device instance structure.
+ * @return BQ25672_OK on success, error code otherwise.
  */
-bq25672_status_t bq25672_read_register(const bq25672_dev_t *dev, const uint8_t reg, uint8_t *value);
-/**
- * @brief Write a value to a single register
- * @param dev Pointer to the device configuration structure
- * @param reg Register address
- * @param value Value to write
- * @return BQ25672_OK on success, error code otherwise
- */
-bq25672_status_t bq25672_write_register(const bq25672_dev_t *dev, const uint8_t reg, const uint8_t value);
+bq25672_status_t bq25672_clear_flags(const bq25672_t * const dev);
 
+/**
+ * @brief Read general charger status.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param status Pointer to store charger status byte.
+ * @return BQ25672_OK on success, error code otherwise.
+ */
+bq25672_status_t bq25672_read_status(const bq25672_t * const dev, uint8_t * const status);
+
+/**
+ * @brief Read ADC channel measurement.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param reg_lsb Register address for ADC LSB byte.
+ * @param value Pointer to store 10-bit ADC result.
+ * @return BQ25672_OK on success, error code otherwise.
+ */
+bq25672_status_t bq25672_read_adc(const bq25672_t * const dev, const uint8_t reg_lsb, uint16_t * const value);
+
+/**
+ * @brief Read a single device register.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param reg Register address to read.
+ * @param value Pointer to store register value.
+ * @return BQ25672_OK on success, error code otherwise.
+ */
+bq25672_status_t bq25672_read_register(const bq25672_t * const dev, const uint8_t reg, uint8_t * const value);
+
+/**
+ * @brief Write a single device register.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param reg Register address to write.
+ * @param value Value to write to register.
+ * @return BQ25672_OK on success, error code otherwise.
+ */
+bq25672_status_t bq25672_write_register(const bq25672_t * const dev, const uint8_t reg, const uint8_t value);
+
+/**
+ * @brief Update (read-modify-write) bits in a device register.
+ *
+ * @param dev Pointer to device instance structure.
+ * @param reg Register address.
+ * @param mask Bit mask selecting bits to modify.
+ * @param value New value to apply to masked bits.
+ * @return BQ25672_OK on success, error code otherwise.
+ */
+bq25672_status_t bq25672_update_register(const bq25672_t * const dev, const uint8_t reg, const uint8_t mask, const uint8_t value);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // BQ25672_H
+#endif
