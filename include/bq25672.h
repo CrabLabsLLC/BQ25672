@@ -3,7 +3,7 @@
  * @author your name (you@domain.com)
  * @brief 
  * @version 0.1
- * @date 2025-04-24
+ * @date 2025-04-29
  * 
  * @copyright Copyright (c) 2025
  * 
@@ -14,309 +14,224 @@
 #ifndef BQ25672_H
 #define BQ25672_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define BQ25672_I2C_ADDR 0x6B ///< Default I2C address of the BQ25672
+#include "bq25672_types.h"
+#include "bq25672_registers.h"
 
-/**
- * @brief Initialize the BQ25672 device.
- *
- * @param dev Pointer to device instance structure.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_init(bq25672_t* const dev, const bq25672_hal_t* const hal);
+#define BQ25672_I2C_ADDRESS     0x6B ///< I2C Slave Address
 
-/**
- * @brief Reset the BQ25672 registers to default values.
- *
- * @param dev Pointer to device instance structure.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_reset_device(const bq25672_t * const dev);
+/*==============================================================================
+* Initialization & Reset
+*============================================================================*/
 
 /**
- * @brief Configure the BQ25672 with a full configuration set.
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to constant configuration settings.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Initialize driver handle, HAL callbacks, and apply config.
+ * @param dev     Pointer to driver handle (allocated by user)
+ * @param hal     Pointer to HAL callback table (const pointer to const data)
+ * @param config  Pointer to config; pass BQ25672_DEFAULT_CFG_PTR or NULL for default
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure(bq25672_t* const dev, const bq25672_config_t * const config);
+bq25672_status_t bq25672_init(bq25672_t* const dev,
+                            const bq25672_hal_t* const hal,
+                            const bq25672_config_t* const config);
 
 /**
- * @brief Configure charging profile parameters.
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to charging configuration settings.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Perform software reset (toggles RESET bit).
+ * @param dev Pointer to driver handle (const pointer to const data)
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure_charging(bq25672_t* const dev, const bq25672_charge_config_t * const config);
+bq25672_status_t bq25672_soft_reset(const bq25672_t* const dev);
+
+/*==============================================================================
+* Full-structure Configuration
+*============================================================================*/
 
 /**
- * @brief Configure system-level behavior.
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to system configuration settings.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Apply a complete configuration struct to the device.
+ * @param dev    Pointer to driver handle (const pointer to const data)
+ * @param config Pointer to config struct (const pointer to const data)
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure_system(bq25672_t* const dev, const bq25672_system_config_t * const config);
+bq25672_status_t bq25672_apply_config(const bq25672_t* const dev,
+                                    const bq25672_config_t* const config);
 
 /**
- * @brief Configure the watchdog timer.
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to watchdog timer configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read the device’s current configuration into a struct.
+ * @param dev    Pointer to driver handle (const pointer to const data)
+ * @param config Pointer to config struct to populate
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure_watchdog(bq25672_t* const dev, const bq25672_watchdog_config_t * const config);
+bq25672_status_t bq25672_read_config(const bq25672_t* const dev,
+                                    bq25672_config_t* const config);
+
+/*==============================================================================
+* Per-block Configuration
+*============================================================================*/
+/** @name System Configuration @{ */
+bq25672_status_t bq25672_set_system_config(const bq25672_t* const dev, const bq25672_system_config_t* const sys_cfg);
+bq25672_status_t bq25672_get_system_config(const bq25672_t* const dev, bq25672_system_config_t* const sys_cfg);
+/** @} */
+
+/** @name Charge Configuration @{ */
+bq25672_status_t bq25672_set_charge_config(const bq25672_t* const dev, const bq25672_charge_config_t* const chg_cfg);
+bq25672_status_t bq25672_get_charge_config(const bq25672_t* const dev, bq25672_charge_config_t* const chg_cfg);
+/** @} */
+
+/** @name USB/OTG Configuration @{ */
+bq25672_status_t bq25672_set_usb_config(const bq25672_t* const dev, const bq25672_usb_config_t* const usb_cfg);
+bq25672_status_t bq25672_get_usb_config(const bq25672_t* const dev, bq25672_usb_config_t* const usb_cfg);
+/** @} */
+
+/** @name Timer Configuration @{ */
+bq25672_status_t bq25672_set_timer_config(const bq25672_t* const dev, const bq25672_timer_config_t* const t_cfg);
+bq25672_status_t bq25672_get_timer_config(const bq25672_t* const dev, bq25672_timer_config_t* const t_cfg);
+/** @} */
+
+/** @name Watchdog Configuration @{ */
+bq25672_status_t bq25672_set_watchdog_config(const bq25672_t* const dev, const bq25672_watchdog_config_t* const wdt_cfg);
+bq25672_status_t bq25672_get_watchdog_config(const bq25672_t* const dev, bq25672_watchdog_config_t* const wdt_cfg);
+/** @} */
+
+/** @name MPPT Configuration @{ */
+bq25672_status_t bq25672_set_mppt_config(const bq25672_t* const dev, const bq25672_mppt_config_t* const mppt_cfg);
+bq25672_status_t bq25672_get_mppt_config(const bq25672_t* const dev, bq25672_mppt_config_t* const mppt_cfg);
+/** @} */
+
+/** @name NTC Configuration @{ */
+bq25672_status_t bq25672_set_ntc_config(const bq25672_t* const dev, const bq25672_ntc_config_t* const ntc_cfg);
+bq25672_status_t bq25672_get_ntc_config(const bq25672_t* const dev, bq25672_ntc_config_t* const ntc_cfg);
+/** @} */
+
+/** @name JEITA Configuration @{ */
+bq25672_status_t bq25672_set_jeita_config(const bq25672_t* const dev, const bq25672_jeita_config_t* const jeita_cfg);
+bq25672_status_t bq25672_get_jeita_config(const bq25672_t* const dev, bq25672_jeita_config_t* const jeita_cfg);
+/** @} */
+
+/** @name Interrupt Configuration @{ */
+bq25672_status_t bq25672_set_interrupt_config(const bq25672_t* const dev, const bq25672_interrupt_config_t* const cfg);
+bq25672_status_t bq25672_get_interrupt_config(const bq25672_t* const dev, bq25672_interrupt_config_t* const cfg);
+/** @} */
+
+/*==============================================================================
+* Enable / Disable Controls
+*============================================================================*/
 
 /**
- * @brief Configure OTG/USB boost operation.
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to USB configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Enable or disable battery charging via CE pin.
+ * @param dev    Pointer to driver handle (const pointer to const data)
+ * @param enable true = enable charging
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure_usb(bq25672_t* const dev, const bq25672_usb_config_t * const config);
+bq25672_status_t bq25672_set_charging_state(const bq25672_t* const dev, const bool enabled);
 
 /**
- * @brief Configure the safety timers.
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to timer configuration settings.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Enable or disable OTG (VBUS boost) mode.
+ * @param dev    Pointer to driver handle (const pointer to const data)
+ * @param enabled true = enter OTG
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure_timers(bq25672_t* const dev, const bq25672_timer_config_t * const config);
+bq25672_status_t bq25672_set_otg_state(const bq25672_t* const dev, const bool enabled);
 
 /**
- * @brief Configure Maximum Power Point Tracking (MPPT).
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to MPPT configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Enter or exit Hi-Z (bypass) mode.
+ * @param dev    Pointer to driver handle (const pointer to const data)
+ * @param enabled true = Hi-Z
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure_mppt(bq25672_t* const dev, const bq25672_mppt_config_t * const config);
+bq25672_status_t bq25672_set_hiz_state(const bq25672_t* const dev, const bool enabled);
+
+/*==============================================================================
+* ADC Readouts
+*============================================================================*/
 
 /**
- * @brief Configure NTC thermal monitoring thresholds.
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to NTC configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read raw 16-bit ADC from any channel register (MSB at reg, LSB at reg+1).
+ * @param dev Pointer to driver handle (const pointer to const data)
+ * @param reg Register address (must be one of IBUS_ADC…DM_ADC)
+ * @param raw Pointer to receive raw 16-bit result
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure_ntc(bq25672_t* const dev, const bq25672_ntc_config_t * const config);
+bq25672_status_t bq25672_read_adc_raw(const bq25672_t* const dev, const uint8_t reg_low, const uint8_t reg_hi, uint16_t* const raw);
 
 /**
- * @brief Configure JEITA temperature-based behavior.
- *
- * @param dev Pointer to device instance structure.
- * @param config Pointer to JEITA configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read input current in mA (IBUS_ADC LSB = 1mA).
+ * @param dev Pointer to driver handle (const pointer to const data)
+ * @param ma  Pointer to receive current in mA
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_configure_jeita(bq25672_t* const dev, const bq25672_jeita_config_t * const config);
+bq25672_status_t bq25672_get_input_current_ma(const bq25672_t* const dev, uint16_t* const ma);
 
 /**
- * @brief Read the current charging configuration from the device.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved charging configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read input voltage in mV (VBUS_ADC LSB = 1mV).
+ * @param dev Pointer to driver handle (const pointer to const data)
+ * @param mv  Pointer to receive voltage in mV
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_read_charging_config(const bq25672_t* const dev, bq25672_charge_config_t * const config);
+bq25672_status_t bq25672_get_input_voltage_mv(const bq25672_t* const dev, uint16_t* const mv);
 
 /**
- * @brief Read the current system configuration from the device.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved system configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read battery current in mA (IBAT_ADC LSB = 1mA).
+ * @param dev Pointer to driver handle (const pointer to const data)
+ * @param ma  Pointer to receive battery current in mA
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_read_system_config(const bq25672_t* const dev, bq25672_system_config_t * const config);
+bq25672_status_t bq25672_get_battery_current_ma(const bq25672_t* const dev, uint16_t* const ma);
 
 /**
- * @brief Read the current USB/OTG configuration from the device.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved USB configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read battery voltage in mV (VBAT_ADC LSB = 1mV).
+ * @param dev Pointer to driver handle (const pointer to const data)
+ * @param mv  Pointer to receive battery voltage in mV
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_read_usb_config(const bq25672_t * const dev, bq25672_usb_config_t * const config);
+bq25672_status_t bq25672_get_battery_voltage_mv(const bq25672_t* const dev, uint16_t* const mv);
+
+/*==============================================================================
+* Status & Interrupt Snapshots
+*============================================================================*/
 
 /**
- * @brief Read the current watchdog timer configuration from the device.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved watchdog timer configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read a snapshot of the device status.
+ * @param dev    Pointer to driver handle (const pointer to const data)
+ * @param status Pointer to status struct
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_read_watchdog_config(const bq25672_t* const dev, bq25672_watchdog_config_t * const config);
+bq25672_status_t bq25672_get_status(const bq25672_t* const dev, bq25672_device_status_t* const status);
 
 /**
- * @brief Read the current timer configuration from the device.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved timer configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read a snapshot of all interrupt flags.
+ * @param dev   Pointer to driver handle (const pointer to const data)
+ * @param intr  Pointer to interrupt-status struct
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_read_timer_config(const bq25672_t* const dev, bq25672_timer_config_t * const config);
+bq25672_status_t bq25672_get_interrupt_status(const bq25672_t* const dev, bq25672_interrupt_status_t* const intr);
+
+/*==============================================================================
+* Low-level register access
+*============================================================================*/
 
 /**
- * @brief Read the current MPPT configuration from the device.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved MPPT configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Read an arbitrary register.
+ * @param dev   Pointer to driver handle (const pointer to const data)
+ * @param reg   Register address
+ * @param value Pointer to receive byte
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_read_mppt_config(const bq25672_t* const dev, bq25672_mppt_config_t * const config);
+bq25672_status_t bq25672_read_register(const bq25672_t* const dev, uint8_t reg, uint8_t* const value);
 
 /**
- * @brief Read the current NTC configuration from the device.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved NTC configuration.
- * @return BQ25672_OK on success, error code otherwise.
+ * @brief Write an arbitrary register.
+ * @param dev   Pointer to driver handle (const pointer to const data)
+ * @param reg   Register address
+ * @param value Byte to write
+ * @return BQ25672_OK on success
  */
-bq25672_status_t bq25672_read_ntc_config(const bq25672_t* const dev, bq25672_ntc_config_t * const config);
-
-/**
- * @brief Read the current JEITA configuration from the device.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved JEITA configuration.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_read_jeita_config(const bq25672_t* const dev, bq25672_jeita_config_t * const config);
-
-/**
- * @brief Read all configuration settings from the device into a full config structure.
- *
- * @param dev Pointer to device instance.
- * @param config Pointer to store the retrieved full device configuration.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_read_config(const bq25672_t* const dev, bq25672_config_t * const config);
-
-/**
- * @brief Set the charge voltage limit.
- *
- * @param dev Pointer to device instance structure.
- * @param voltage_mv Charge voltage in millivolts.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_set_charge_voltage(const bq25672_t * const dev, const uint16_t voltage_mv);
-
-/**
- * @brief Set the charge current limit.
- *
- * @param dev Pointer to device instance structure.
- * @param current_ma Charge current in milliamps.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_set_charge_current(const bq25672_t * const dev, const uint16_t current_ma);
-
-/**
- * @brief Enable battery charging.
- *
- * @param dev Pointer to device instance structure.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_enable_charging(const bq25672_t * const dev);
-
-/**
- * @brief Disable battery charging.
- *
- * @param dev Pointer to device instance structure.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_disable_charging(const bq25672_t * const dev);
-
-/**
- * @brief Enable OTG (boost) operation.
- *
- * @param dev Pointer to device instance structure.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_enable_otg(const bq25672_t * const dev);
-
-/**
- * @brief Disable OTG (boost) operation.
- *
- * @param dev Pointer to device instance structure.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_disable_otg(const bq25672_t * const dev);
-
-/**
- * @brief Read fault status registers.
- *
- * @param dev Pointer to device instance structure.
- * @param fault0 Pointer to store Fault Status 0 value.
- * @param fault1 Pointer to store Fault Status 1 value.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_read_fault_status(const bq25672_t * const dev, uint8_t * const fault0, uint8_t * const fault1);
-
-/**
- * @brief Clear latched charger and fault flags.
- *
- * @param dev Pointer to device instance structure.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_clear_flags(const bq25672_t * const dev);
-
-/**
- * @brief Read general charger status.
- *
- * @param dev Pointer to device instance structure.
- * @param status Pointer to store charger status byte.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_read_status(const bq25672_t * const dev, uint8_t * const status);
-
-/**
- * @brief Read ADC channel measurement.
- *
- * @param dev Pointer to device instance structure.
- * @param reg_lsb Register address for ADC LSB byte.
- * @param value Pointer to store 10-bit ADC result.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_read_adc(const bq25672_t * const dev, const uint8_t reg_lsb, uint16_t * const value);
-
-/**
- * @brief Read a single device register.
- *
- * @param dev Pointer to device instance structure.
- * @param reg Register address to read.
- * @param value Pointer to store register value.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_read_register(const bq25672_t * const dev, const uint8_t reg, uint8_t * const value);
-
-/**
- * @brief Write a single device register.
- *
- * @param dev Pointer to device instance structure.
- * @param reg Register address to write.
- * @param value Value to write to register.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_write_register(const bq25672_t * const dev, const uint8_t reg, const uint8_t value);
-
-/**
- * @brief Update (read-modify-write) bits in a device register.
- *
- * @param dev Pointer to device instance structure.
- * @param reg Register address.
- * @param mask Bit mask selecting bits to modify.
- * @param value New value to apply to masked bits.
- * @return BQ25672_OK on success, error code otherwise.
- */
-bq25672_status_t bq25672_update_register(const bq25672_t * const dev, const uint8_t reg, const uint8_t mask, const uint8_t value);
+bq25672_status_t bq25672_write_register(const bq25672_t* const dev, uint8_t reg, uint8_t value);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // BQ25672_H
